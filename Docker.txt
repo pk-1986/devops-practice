@@ -1,0 +1,178 @@
+﻿	Docker
+
+Installing Docker:
+[] sudo su
+[]cd
+[] yum update -y
+[] yum -y install docker
+[] which docker
+[] cd /bin
+[] docker --version
+[] systemctl start docker
+[] systemctl status docker
+----------------------------
+Docker images commands:
+1)docker images
+2)docker pull
+3)docker rmi
+Docker containers commands:
+1)docker ps
+2)docker run
+3)docker start
+4)docker stop
+----------------------------
+3 ways to create the images:
+1)Take image from docker hub.
+2)Create image from existing docker container
+3)Create image from docker file.
+Example:
+[] docker pull centos:6
+[] docker images
+[] docker run -it –-name contname imagename bash
+[] docker ps
+[] docker ps -a
+-------------------------
+Creating Images and Containers and login into the container:
+[] docker pull centos:6
+[] docker images
+[] docker run -itd  centos:6 bash
+[] docker ps
+[] docker ps -a
+[] docker start contianerid
+[] docker exec -it containerid
+(or)
+[]docker attach contid
+-------------------------
+Creating image from the container:
+[] docker commit containerid imagename
+[] docker images
+--------------------------
+Docker File:
+[]vi Dockerfile
+FROM ubuntu:18.04
+RUN apt-get update && apt-get install -y apache2
+:wq!
+Command to build docker image:
+[]docker build -t imagename .
+[]docker images
+---------------------------
+Docker Port Forwarding:
+Practical:
+[]docker pull centos:7
+[]docker run -d -it --privileged centos:7 /usr/sbin/init
+[] docker docker exec -it dd8bbcdce691 /bin/bash
+[] yum -y install httpd
+[ /] cd /var/www/html
+[] vi index.html
+ hi pavani
+:wq!
+[] systemctl  httpd start
+[] exit
+[] docker commit containerid centos:httpd
+[] docker run -d -it --privileged -p 9898:80 centos:7 /usr/sbin/init
+Check the httpd service is running or not. If not start from the new container.
+[] systemctl start docker
+Go to browser ip:9898
+
+steps:
+1)pull images from hub
+2)create cont from image
+3)in that cont install httpd
+4)create image from the new cont
+5)create cont from new image also do port frowardng
+
+--------------------------------
+Docker Networking:
+
+[] docker network create --driver=bridge pavaninetwork
+[] docker network ls
+[] docker inspect pavaninetwork
+[] docker run -itd --name pavani10 centos:6
+[] docker network connect pavaninetwork pavani10
+[] docker inspect pavani10
+Note: Pavani10 is container name
+--------------------------------
+Docker Volumes:
+
+Creating Volumes:
+[] docker pull ubuntu
+[] docker volume create volumename
+[] docker volume create myvol
+[] docker volume ls
+[] docker inspect myvol
+[] docker run -itd –-name myubuntu -v myvol:/app ubuntu /bin/bash
+[] docker ps
+[] docker attach containerid
+[] exit
+[] cd /var/lib/docker/volume/myvol/_data
+[]ls
+
+[] docker attach containerid
+[] cd /app
+[] touch pavani
+[] exit
+-----------------------
+Docker Compose:
+https://acloudxpert.com/how-to-install-docker-compose-on-amazon-linux-ami/
+
+Example-Compose file:
+vi docker-compose.yml
+version: '3'
+services:
+  web:
+    image: nginx
+  database:
+    image: redis
+
+
+:wq!
+
+-->Check the validity of the file by command
+   docker-compose config
+   
+-->Run docker-compose file by command
+    docker-compose up
+
+-->Bring down the application by command
+     docker-compose down
+
+-->scale up the containers
+
+   docker-compose up -d --scale web=5
+-------------------------------
+Docker Swarm:
+Practical:
+-->install docker on manager and  nodes as well. Below are the steps to install docker on node.
+[] yum update -y
+[] yum install -y docker
+[] systemctl start docker
+[] systemctl status docker
+
+-->Take 3 ec2 instances. Among them one is manager and other 2 are nodes.Go to manager and run the following commands.
+1)Initialize docker swarm
+[] docker swarm init --advertise-addr 34.242.60.96(private ip address of manager)
+[] docker node ls
+2)Join the worker in the swarm(run in manager)
+[] docker swarm join-token  worker
+-->It will one command and paste the command in worker node
+--->Go to worker node
+[] docker swarm join –token SW----------------------------
+-->Go to manager node
+3)Check the nodes are added are not in the manager
+[] docker node ls
+******************************
+4)Run the docker containers on docker swarm
+[] docker service create –-replicas 5 -p 8078:80 –-name servicename nginx
+check the status
+[] docker service ls
+[] docker service ps servicename
+ check the service is running on all nodes. Check on the browser by giving ip for all nodes.
+5)scale the service up and down
+   [] docker service scale servicename=2
+6)Inspecting nodes
+ [] docker node inspect nodename(or)id
+8)Remove the service nameo
+[] docker service rm servicename
+9)Docker service logs
+[]docker service logs  -f servicename
+---------------------------------------------
